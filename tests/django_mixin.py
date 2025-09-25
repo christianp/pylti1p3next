@@ -10,9 +10,9 @@ class DjangoMixin:
 
     def _get_request(
         self,
-        *,
         login_request,
         login_response,
+        *,
         request_is_secure=False,
         post_data=None,
         empty_session=False,
@@ -81,13 +81,8 @@ class DjangoMixin:
                 if enable_check_cookies:
                     response_html = oidc_login.enable_check_cookies().redirect(
                         launch_url
-                    )
-                    self.assertTrue('<script type="text/javascript">' in response_html)
-                    self.assertTrue("<body>" in response_html)
-                    self.assertTrue(
-                        'document.addEventListener("DOMContentLoaded", checkCookiesAllowed);'
-                        in response_html
-                    )
+                    ).text
+                    self.assertTrue('Unit test cookie check' in response_html)
 
                     login_data["lti1p3_new_window"] = "1"
                     request = FakeRequest(get=login_data, secure=secure)
@@ -165,3 +160,25 @@ class DjangoMixin:
         from pylti1p3.contrib.django import DjangoMessageLaunch
 
         return DjangoMessageLaunch
+
+    configured = False
+
+    def setUp(self):
+        super().setUp()
+
+        if not DjangoMixin.configured:
+            from django.conf import settings
+            from pathlib import Path
+
+            settings.configure(
+                DEBUG=True,
+                TEMPLATES=[{
+                    "BACKEND": "django.template.backends.django.DjangoTemplates",
+                    "DIRS": [Path(__file__).parent.resolve() / "django" / "templates"]
+                }]
+            )
+
+            from django.core.wsgi import get_wsgi_application
+            get_wsgi_application()
+
+            DjangoMixin.configured = True
