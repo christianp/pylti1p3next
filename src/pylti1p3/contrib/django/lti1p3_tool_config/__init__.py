@@ -1,4 +1,3 @@
-import json
 from pylti1p3.deployment import Deployment
 from pylti1p3.exception import LtiException
 from pylti1p3.registration import Registration
@@ -74,7 +73,7 @@ class DjangoDbToolConf(ToolConfAbstract):
     def find_registration_by_params(self, iss, client_id, *args, **kwargs):
         lti_tool = self.get_lti_tool(iss, client_id)
         auth_audience = lti_tool.auth_audience if lti_tool.auth_audience else None
-        key_set = json.loads(lti_tool.key_set) if lti_tool.key_set else None
+        key_set = lti_tool.key_set if lti_tool.key_set else None
         key_set_url = lti_tool.key_set_url if lti_tool.key_set_url else None
         tool_public_key = (
             lti_tool.tool_key.public_key if lti_tool.tool_key.public_key else None
@@ -103,9 +102,7 @@ class DjangoDbToolConf(ToolConfAbstract):
 
     def find_deployment_by_params(self, iss, deployment_id, client_id, *args, **kwargs):
         lti_tool = self.get_lti_tool(iss, client_id)
-        deployment_ids = (
-            json.loads(lti_tool.deployment_ids) if lti_tool.deployment_ids else []
-        )
+        deployment_ids = lti_tool.deployment_ids if lti_tool.deployment_ids else []
         if deployment_id not in deployment_ids:
             return None
         d = Deployment()
@@ -131,7 +128,7 @@ class DjangoDbToolConf(ToolConfAbstract):
         for key in qs:
             if key.public_key and key.public_key not in public_key_lst:
                 if key.public_jwk:
-                    jwks.append(json.loads(key.public_jwk))
+                    jwks.append(key.public_jwk)
                 else:
                     jwks.append(Registration.get_jwk(key.public_key))
                 public_key_lst.append(key.public_key)
