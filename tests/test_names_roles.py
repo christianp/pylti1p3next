@@ -4,12 +4,13 @@ import requests_mock
 from .request import FakeRequest
 from .tool_config import get_test_tool_conf
 from .base import TestServicesBase
+from .django_mixin import DjangoMixin
 
 
-class TestNamesRolesProvisioningService(TestServicesBase):
+class TestNamesRolesProvisioningService(DjangoMixin, TestServicesBase):
     def test_get_members(self):
         # pylint: disable=import-outside-toplevel
-        from pylti1p3.contrib.django import DjangoMessageLaunch
+        DjangoMessageLaunch = self._get_launch_cls()
 
         tool_conf = get_test_tool_conf()
 
