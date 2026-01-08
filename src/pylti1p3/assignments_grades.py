@@ -1,4 +1,3 @@
-from collections.abc import Generator, Callable
 import typing as t
 import typing_extensions as te
 from .exception import LtiException
@@ -140,7 +139,7 @@ class AssignmentsGradesService:
             raise LtiException("Unknown response type received for line items")
         return lineitems["body"], lineitems["next_page_url"]
 
-    def get_lineitems(self) -> Generator[TLineItem]:
+    def get_lineitems(self) -> t.Generator[TLineItem, None, None]:
         """
         Get list of all available line items.
 
@@ -164,7 +163,7 @@ class AssignmentsGradesService:
             yield from [t.cast(TLineItem, item) for item in page["body"]]
 
     def find_lineitem_satisfying(
-        self, condition: Callable[[TLineItem], bool]
+        self, condition: t.Callable[[TLineItem], bool]
     ) -> t.Optional[LineItem]:
         """
         Find line item matching the given condition.
@@ -229,7 +228,7 @@ class AssignmentsGradesService:
         self,
         new_lineitem: LineItem,
         find_by: str = "tag",
-        condition: t.Optional[Callable[[TLineItem], bool]] = None,
+        condition: t.Optional[t.Callable[[TLineItem], bool]] = None,
     ) -> LineItem:
         """
         Try to find line item using ID or Tag. New lime item will be created if nothing is found.
@@ -290,7 +289,7 @@ class AssignmentsGradesService:
 
         return LineItem(t.cast(TLineItem, response["body"]))
 
-    def get_grades(self, lineitem: t.Optional[LineItem] = None) -> Generator:
+    def get_grades(self, lineitem: t.Optional[LineItem] = None) -> t.Generator:
         """
         Return all grades for the passed line item (across all users enrolled in the line item's context).
 

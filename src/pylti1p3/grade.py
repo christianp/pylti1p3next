@@ -172,7 +172,7 @@ class Grade:
         return self._extra_claims
 
     def get_value(self) -> str:
-        data: dict[str, t.Union[str, float, dict[str, t.Union[str, None]], None]]
+        data: t.Dict[str, t.Union[str, float, t.Dict[str, t.Union[str, None]], None]]
         data = {
             "scoreGiven": self._score_given,
             "scoreMaximum": self._score_maximum,

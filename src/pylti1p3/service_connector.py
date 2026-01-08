@@ -1,4 +1,3 @@
-from collections.abc import Generator
 import hashlib
 import re
 import time
@@ -151,7 +150,7 @@ class ServiceConnector:
 
     def get_paginated_data(
         self, scopes: t.Sequence[str], url: t.Union[str, None], *args, **kwargs
-    ) -> Generator[TServiceConnectorResponse]:
+    ) -> t.Generator[TServiceConnectorResponse, None, None]:
         """
         Get paginated data from the service.
         Keeps fetching pages until there are no more.

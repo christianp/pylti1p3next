@@ -9,7 +9,7 @@ Written with reference to:
 * https://moodlelti.theedtech.dev/dynreg/ - "LTI Advantage Automatic Registration" by Claude Vervoort
 """
 
-from typing import Any, Dict
+import typing as t
 
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import rsa
@@ -19,7 +19,7 @@ from requests.exceptions import RequestException
 from .exception import LtiException
 
 
-def generate_key_pair(key_size: int = 4096) -> tuple[str, str]:
+def generate_key_pair(key_size: int = 4096) -> t.Tuple[str, str]:
     """
     Generates an RSA key pair.
 
@@ -66,7 +66,7 @@ class DynamicRegistration:
         """
         return self.client_name
 
-    def get_response_types(self) -> list[str]:
+    def get_response_types(self) -> t.List[str]:
         """
         Get the response types supported by the tool.
 
@@ -100,13 +100,13 @@ class DynamicRegistration:
         """
         raise NotImplementedError
 
-    def get_redirect_uris(self) -> list[str]:
+    def get_redirect_uris(self) -> t.List[str]:
         """
         Get the tool's OIDC redirect URIs.
         """
         raise NotImplementedError
 
-    def get_scopes(self) -> list[str]:
+    def get_scopes(self) -> t.List[str]:
         """
         Get the list of scopes that the tool would like.
 
@@ -135,7 +135,7 @@ class DynamicRegistration:
         """
         raise NotImplementedError
 
-    def get_claims(self) -> list[str]:
+    def get_claims(self) -> t.List[str]:
         """
         A list of claims indicating which information this tool desires to be included in each idtoken.
 
@@ -151,7 +151,7 @@ class DynamicRegistration:
             "sub",
         ]
 
-    def get_messages(self) -> list[Dict[str, str]]:
+    def get_messages(self) -> t.List[t.Dict[str, str]]:
         """
         A list of messages supported by this tool.
 
@@ -182,7 +182,7 @@ class DynamicRegistration:
         """
         raise NotImplementedError
 
-    def lti_registration_data(self) -> Dict[str, Any]:
+    def lti_registration_data(self) -> t.Dict[str, t.Any]:
         """
         Get the registration data object to send back to the platform.
 
@@ -226,7 +226,7 @@ class DynamicRegistration:
         """
         raise NotImplementedError
 
-    def get_openid_configuration(self) -> Dict[str, Any]:
+    def get_openid_configuration(self) -> t.Dict[str, t.Any]:
         openid_configuration_endpoint = self.get_openid_configuration_endpoint()
 
         with requests.Session() as session:
@@ -240,7 +240,7 @@ class DynamicRegistration:
 
         return openid_configuration
 
-    def register(self) -> Dict[str, Any]:
+    def register(self) -> t.Dict[str, t.Any]:
         """
         Perform the tool registration.
 
@@ -294,8 +294,10 @@ class DynamicRegistration:
         return tool
 
     def complete_registration(
-        self, openid_configuration: Dict[str, Any], openid_registration: Dict[str, Any]
-    ) -> Any:
+        self,
+        openid_configuration: t.Dict[str, t.Any],
+        openid_registration: t.Dict[str, t.Any],
+    ) -> t.Any:
         """
         Save the registration information.
 

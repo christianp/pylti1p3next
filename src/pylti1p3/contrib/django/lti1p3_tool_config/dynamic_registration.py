@@ -1,4 +1,4 @@
-from typing import Any, Dict
+from typing import Any, Dict, List
 
 from django.urls import reverse_lazy
 from django.templatetags.static import static
@@ -39,7 +39,7 @@ class DjangoDynamicRegistration(DynamicRegistration):
     def get_jwks_uri(self) -> str:
         return self.request.build_absolute_uri(str(self.jwks_url))
 
-    def get_redirect_uris(self) -> list[str]:
+    def get_redirect_uris(self) -> List[str]:
         return [self.get_target_link_uri()]
 
     def get_domain(self) -> str:
