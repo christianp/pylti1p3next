@@ -10,9 +10,9 @@ class DjangoMixin:
 
     def _get_request(
         self,
-        *,
         login_request,
         login_response,
+        *,
         request_is_secure=False,
         post_data=None,
         empty_session=False,
