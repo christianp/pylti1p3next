@@ -14,10 +14,10 @@ class CookiesAllowedCheckPage:
         self,
         params: t.Mapping[str, str],
         protocol: str,
+        *,
         main_text: str,
         click_text: str,
         loading_text: str,
-        *args,
         **kwargs,
     ):
         # pylint: disable=unused-argument

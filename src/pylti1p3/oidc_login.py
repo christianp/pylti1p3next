@@ -250,9 +250,9 @@ class OIDCLogin(t.Generic[REQ, TCONF, SES, COOK, RED]):
         page = CookiesAllowedCheckPage(
             params,
             protocol,
-            self._cookies_unavailable_msg_main_text,
-            self._cookies_unavailable_msg_click_text,
-            self._cookies_check_loading_text,
+            main_text=self._cookies_unavailable_msg_main_text,
+            click_text=self._cookies_unavailable_msg_click_text,
+            loading_text=self._cookies_check_loading_text,
         )
 
         return page.get_html()
