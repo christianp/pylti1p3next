@@ -13,6 +13,7 @@ from .registration import Registration
 from .redirect import Redirect
 from .request import Request
 from .tool_config import ToolConfAbstract
+from .util import add_params_to_url
 
 
 RED = t.TypeVar("RED")
@@ -135,10 +136,7 @@ class OIDCLogin(t.Generic[REQ, TCONF, SES, COOK, RED]):
             # LTI message hint to identify LTI context within the platform
             auth_params["lti_message_hint"] = lti_message_hint
 
-        if "?" in auth_login_url:
-            auth_login_return_url = auth_login_url + "&" + urlencode(auth_params)
-        else:
-            auth_login_return_url = auth_login_url + "?" + urlencode(auth_params)
+        auth_login_return_url = add_params_to_url(auth_login_url, auth_params)
         return auth_login_return_url
 
     def _prepare_redirect(self, launch_url: str) -> Redirect[RED]:
