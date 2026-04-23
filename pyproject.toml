@@ -67,3 +67,8 @@ version = {attr = "pylti1p3.__version__"}
 [tool.coverage.paths]
 pylti1p3next = ["pylti1p3"]
 tests = ["tests"]
+
+[dependency-groups]
+dev = [
+    "sphinx>=7.1.2",
+]

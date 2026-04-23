@@ -44,6 +44,7 @@ from .session import SessionService
 from .service_connector import ServiceConnector, REQUESTS_USER_AGENT
 from .tool_config import ToolConfAbstract
 
+#: A claim describing the resource link used to make the launch.
 TResourceLinkClaim = te.TypedDict(
     "TResourceLinkClaim",
     {
@@ -56,6 +57,7 @@ TResourceLinkClaim = te.TypedDict(
     total=False,
 )
 
+#: A claim describing the context of the launch.
 TContextClaim = te.TypedDict(
     "TContextClaim",
     {
@@ -69,6 +71,7 @@ TContextClaim = te.TypedDict(
     total=False,
 )
 
+#: A claim describing the platform used to make the launch.
 TToolPlatformClaim = te.TypedDict(
     "TToolPlatformClaim",
     {
@@ -85,6 +88,7 @@ TToolPlatformClaim = te.TypedDict(
     total=False,
 )
 
+#: A claim describing the person's Learning Information Services data.
 TLearningInformationServicesClaim = te.TypedDict(
     "TLearningInformationServicesClaim",
     {
@@ -95,6 +99,7 @@ TLearningInformationServicesClaim = te.TypedDict(
     total=False,
 )
 
+#: A claim describing a link migrated from LTI 1.1.
 TMigrationClaim = te.TypedDict(
     "TMigrationClaim",
     {
@@ -110,6 +115,7 @@ TMigrationClaim = te.TypedDict(
     total=False,
 )
 
+#: A claim describing the user the launch was made for. TODO - look up what this really is
 TForUserClaim = te.TypedDict(
     "TForUserClaim",
     {
@@ -125,6 +131,7 @@ TForUserClaim = te.TypedDict(
     },
 )
 
+#: The data passed in the launch message.
 TLaunchData = te.TypedDict(
     "TLaunchData",
     {
@@ -164,6 +171,7 @@ TLaunchData = te.TypedDict(
     total=False,
 )
 
+#: Data from the JWT header.
 TJwtHeader = te.TypedDict(
     "TJwtHeader",
     {
@@ -173,6 +181,7 @@ TJwtHeader = te.TypedDict(
     total=False,
 )
 
+#: JWT response data.
 TJwtData = te.TypedDict(
     "TJwtData",
     {
@@ -189,6 +198,8 @@ COOK = t.TypeVar("COOK", bound=CookieService)
 
 
 class MessageLaunch(t.Generic[REQ, TCONF, SES, COOK]):
+    """ A message describing an LTI 1.3 launch. """
+
     __metaclass__ = ABCMeta
     _request: REQ
     _tool_config: TCONF
@@ -453,7 +464,7 @@ class MessageLaunch(t.Generic[REQ, TCONF, SES, COOK]):
         """
         Fetches an instance of the course groups service for the current launch.
 
-        :return:
+        :return: CourseGroupsService
         """
         assert self._registration is not None, "Registration not yet set"
         connector = self.get_service_connector()

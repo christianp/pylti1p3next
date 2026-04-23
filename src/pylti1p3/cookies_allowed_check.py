@@ -4,6 +4,7 @@ import typing as t
 
 
 class CookiesAllowedCheckPage:
+    """ Constructs a page which performs a check that the browser can save and use cookies. """
     _params: t.Mapping[str, str] = {}
     _protocol: str = "http"
     _main_text: str = ""

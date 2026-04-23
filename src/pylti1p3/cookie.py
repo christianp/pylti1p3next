@@ -3,6 +3,8 @@ from abc import ABCMeta, abstractmethod
 
 
 class CookieService:
+    """ An interface for setting and getting cookie data. """
+
     __metaclass__ = ABCMeta
     _cookie_prefix: str = "lti1p3"
 

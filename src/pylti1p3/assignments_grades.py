@@ -8,6 +8,7 @@ from .lineitem import TLineItem
 from .service_connector import ServiceConnector, TServiceConnectorResponse
 
 
+#: Data describing the assignments and grades service, using data from the launch message.
 TAssignmentsGradersData = te.TypedDict(
     "TAssignmentsGradersData",
     {
@@ -27,6 +28,10 @@ TAssignmentsGradersData = te.TypedDict(
 
 
 class AssignmentsGradesService:
+    """ Handles interaction with the assignments and grades service. 
+        
+        Don't create this directly; use :py:func:`pylti1p3.message_launch.MessageLaunch.get_ags()` to create an instance from a launch message.
+    """
     _service_connector: ServiceConnector
     _service_data: TAssignmentsGradersData
 
@@ -37,6 +42,7 @@ class AssignmentsGradesService:
         self._service_data = service_data
 
     def can_read_lineitem(self) -> bool:
+        """ Can we read lineitem data? """
         return (
             "https://purl.imsglobal.org/spec/lti-ags/scope/lineitem.readonly"
             in self._service_data["scope"]
@@ -45,18 +51,21 @@ class AssignmentsGradesService:
         )
 
     def can_create_lineitem(self) -> bool:
+        """ Can we create new lineitems? """
         return (
             "https://purl.imsglobal.org/spec/lti-ags/scope/lineitem"
             in self._service_data["scope"]
         )
 
     def can_read_grades(self) -> bool:
+        """ Can we read grade data? """
         return (
             "https://purl.imsglobal.org/spec/lti-ags/scope/result.readonly"
             in self._service_data["scope"]
         )
 
     def can_put_grade(self) -> bool:
+        """ Can we put new grade data? """
         return (
             "https://purl.imsglobal.org/spec/lti-ags/scope/score"
             in self._service_data["scope"]

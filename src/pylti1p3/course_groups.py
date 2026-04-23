@@ -3,6 +3,7 @@ import typing_extensions as te
 from .utils import add_param_to_url
 from .service_connector import ServiceConnector
 
+#: Data describing how to interact with the groups service, from the launch message.
 TGroupsServiceData = te.TypedDict(
     "TGroupsServiceData",
     {
@@ -20,6 +21,7 @@ TGroupsServiceData = te.TypedDict(
     total=False,
 )
 
+#: Data describing a group.
 TGroup = te.TypedDict(
     "TGroup",
     {
@@ -33,6 +35,7 @@ TGroup = te.TypedDict(
     total=False,
 )
 
+#: Data describing a set of groups.
 TSet = te.TypedDict(
     "TSet",
     {
@@ -47,6 +50,10 @@ TSet = te.TypedDict(
 
 
 class CourseGroupsService:
+    """ Interacts with the course groups service.
+
+        Don't create this directly; instead use :py:func:`pylti1p3.message_launch.MessageLaunch.get_cgs` to create one using the launch message.
+    """
     _service_connector: ServiceConnector
     _service_data: TGroupsServiceData
 
