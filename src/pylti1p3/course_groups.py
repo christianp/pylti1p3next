@@ -83,7 +83,13 @@ class CourseGroupsService:
         data_body = t.cast(t.Any, data.get("body", {}))
         return data_body.get(data_key, []), data["next_page_url"]
 
-    def get_groups(self, user_id=None):
+    def get_groups(self, user_id: t.Optional[str] = None) -> list:
+        """ 
+            Get the groups in the context.
+
+            If you give a user ID, only that user's groups are returned.
+        """
+
         groups_res_lst = []
         groups_url = self._service_data.get("context_groups_url")
         if user_id:
@@ -95,10 +101,16 @@ class CourseGroupsService:
 
         return groups_res_lst
 
-    def has_sets(self):
+    def has_sets(self) -> bool:
+        """ Does the context have sets of groups? """
         return "context_group_sets_url" in self._service_data
 
-    def get_sets(self, include_groups=False):
+    def get_sets(self, include_groups: bool = False) -> list:
+        """ 
+            Get the sets in the context.
+
+            If ``include_groups`` is true, then also get the groups belonging to each set.
+        """
         sets_res_lst = []
         sets_url = self._service_data.get("context_group_sets_url")
 

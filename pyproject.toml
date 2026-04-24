@@ -71,4 +71,5 @@ tests = ["tests"]
 [dependency-groups]
 dev = [
     "sphinx>=7.1.2",
+    "sphinx_book_theme>=1.2.0",
 ]

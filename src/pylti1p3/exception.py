@@ -1,15 +1,29 @@
+"""
+    Exceptions thrown by ``pylti1p3``.
+"""
+
 import requests
 
 
 class LtiException(Exception):
+    """
+        A generic LTI exception.
+    """
     pass
 
 
 class OIDCException(Exception):
+    """
+        An exception thrown during the OIDC login.
+    """
     pass
 
 
 class LtiServiceException(LtiException):
+    """
+        An exception representing an error response from an LTI service.
+    """
+
     def __init__(self, message: str, response: requests.Response):
         msg = f"{message} HTTP response [{response.url}]: {response.status_code}"
         super().__init__(msg)

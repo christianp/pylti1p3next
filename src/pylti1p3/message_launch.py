@@ -115,7 +115,7 @@ TMigrationClaim = te.TypedDict(
     total=False,
 )
 
-#: A claim describing the user the launch was made for. TODO - look up what this really is
+#: A claim describing the user the launch was made for, given during submission review or data privacy launches.
 TForUserClaim = te.TypedDict(
     "TForUserClaim",
     {
@@ -198,7 +198,7 @@ COOK = t.TypeVar("COOK", bound=CookieService)
 
 
 class MessageLaunch(t.Generic[REQ, TCONF, SES, COOK]):
-    """ A message describing an LTI 1.3 launch. """
+    """ Stores data from an LTI launch and provides methods to interact with LTI services. """
 
     __metaclass__ = ABCMeta
     _request: REQ
@@ -259,29 +259,52 @@ class MessageLaunch(t.Generic[REQ, TCONF, SES, COOK]):
         raise NotImplementedError
 
     def set_launch_id(self, launch_id: str) -> "MessageLaunch":
+        """
+            Set the launch's ID.
+        """
         self._launch_id = launch_id
         return self
 
     def set_auto_validation(self, enable: bool) -> "MessageLaunch":
+        """
+            Enable or disable automatic validation of the body of the launch message JWT.
+
+            If enabled, the data will be validated and cached on access.
+        """
         self._auto_validation = enable
         return self
 
     def set_jwt(self, val: TJwtData) -> "MessageLaunch":
+        """
+            Store the JWT data for this launch.
+        """
         self._jwt = val
         return self
 
     def set_jwt_verify_options(self, val: t.Dict[str, bool]) -> "MessageLaunch":
+        """
+            Set the JWT verification options.
+        """
         self._jwt_verify_options = val
         return self
 
     def set_restored(self) -> "MessageLaunch":
+        """
+            Mark this launch as restored from cache.
+        """
         self._restored = True
         return self
 
     def get_session_service(self) -> SES:
+        """
+            Get a handler for the session service.
+        """
         return self._session_service
 
     def get_iss(self) -> str:
+        """
+            Get the launch's issuer. (the ``iss`` property)
+        """
         iss = self._get_jwt_body().get("iss")
         if not iss:
             raise LtiMessageValidationException(
@@ -290,6 +313,9 @@ class MessageLaunch(t.Generic[REQ, TCONF, SES, COOK]):
         return iss
 
     def get_client_id(self) -> str:
+        """
+            Get the client ID of the launch. (the ``aud`` property)
+        """
         jwt_body = self._get_jwt_body()
         aud = jwt_body.get("aud")
         return aud[0] if isinstance(aud, list) else aud  # type: ignore
@@ -307,6 +333,9 @@ class MessageLaunch(t.Generic[REQ, TCONF, SES, COOK]):
         requests_session: t.Optional[requests.Session] = None,
         service_connector_cls: type[ServiceConnector] = ServiceConnector,
     ) -> "MessageLaunch":
+        """
+            Restore a launch message from the cache, using the launch ID.
+        """
         obj = cls(
             request,
             tool_config,
@@ -388,14 +417,15 @@ class MessageLaunch(t.Generic[REQ, TCONF, SES, COOK]):
         return deployment_id
 
     def get_service_connector(self) -> ServiceConnector:
+        """
+            Get a service connector instance for this launch's registration and session.
+        """
         assert self._registration is not None, "Registration not yet set"
         return self._service_connector_cls(self._registration, self._requests_session)
 
     def has_nrps(self) -> bool:
         """
         Returns whether or not the current launch can use the names and roles service.
-
-        :return: bool  Returns a boolean indicating the availability of names and roles.
         """
         return (
             self._get_jwt_body()
@@ -407,8 +437,6 @@ class MessageLaunch(t.Generic[REQ, TCONF, SES, COOK]):
     def get_nrps(self) -> NamesRolesProvisioningService:
         """
         Fetches an instance of the names and roles service for the current launch.
-
-        :return: NamesRolesProvisioningService
         """
         assert self._registration is not None, "Registration not yet set"
         connector = self.get_service_connector()
@@ -424,8 +452,6 @@ class MessageLaunch(t.Generic[REQ, TCONF, SES, COOK]):
     def has_ags(self) -> bool:
         """
         Returns whether or not the current launch can use the assignments and grades service.
-
-        :return: bool  Returns a boolean indicating the availability of assignments and grades.
         """
         return (
             self._get_jwt_body().get(
@@ -436,9 +462,7 @@ class MessageLaunch(t.Generic[REQ, TCONF, SES, COOK]):
 
     def get_ags(self) -> AssignmentsGradesService:
         """
-        Fetches an instance of the assignments and grades service for the current launch.
-
-        :return: AssignmentsGradesService
+        Returns a handler for the assignments and grades service for the current launch.
         """
         assert self._registration is not None, "Registration not yet set"
         connector = self.get_service_connector()
@@ -452,8 +476,6 @@ class MessageLaunch(t.Generic[REQ, TCONF, SES, COOK]):
     def has_cgs(self) -> bool:
         """
         Returns whether or not the current launch can use the course groups service.
-
-        :return: bool  Returns a boolean indicating the availability of groups.
         """
         groups_service_data = self._get_jwt_body().get(
             "https://purl.imsglobal.org/spec/lti-gs/claim/groupsservice", {}
@@ -462,9 +484,7 @@ class MessageLaunch(t.Generic[REQ, TCONF, SES, COOK]):
 
     def get_cgs(self) -> CourseGroupsService:
         """
-        Fetches an instance of the course groups service for the current launch.
-
-        :return: CourseGroupsService
+        Returns a handler for the course groups service for the current launch.
         """
         assert self._registration is not None, "Registration not yet set"
         connector = self.get_service_connector()
@@ -482,9 +502,7 @@ class MessageLaunch(t.Generic[REQ, TCONF, SES, COOK]):
 
     def get_deep_link(self) -> DeepLink:
         """
-        Fetches a deep link that can be used to construct a deep linking response.
-
-        :return: DeepLink
+        Returns a deep link handler that can be used to construct a deep linking response.
         """
         assert self._registration is not None, "Registration not yet set"
 
@@ -499,21 +517,17 @@ class MessageLaunch(t.Generic[REQ, TCONF, SES, COOK]):
 
     def get_data_privacy_launch_user(self) -> t.Optional[TForUserClaim]:
         """
-        Applicable for DataPrivacyLaunchRequest only. Returns information about user
-        who's data the launch is intended to action upon, for instance the student
+        Applicable for ``DataPrivacyLaunchRequest`` only. Returns information about user
+        whose data the launch is intended to action upon, for instance the student
         who has requested their data be removed under GDPR's right to be forgotten.
-
-        :return: dict
         """
         jwt_body = self._get_jwt_body()
         return jwt_body.get("https://purl.imsglobal.org/spec/lti/claim/for_user")
 
     def get_submission_review_user(self) -> t.Optional[TForUserClaim]:
         """
-        Applicable for LtiSubmissionReviewRequest only. Returns information about user
-        who's submission should be displayed for review.
-
-        :return: dict
+        Applicable for ``LtiSubmissionReviewRequest`` only. Returns information about user
+        whose submission should be displayed for review.
         """
         jwt_body = self._get_jwt_body()
         return jwt_body.get("https://purl.imsglobal.org/spec/lti/claim/for_user")
@@ -521,8 +535,6 @@ class MessageLaunch(t.Generic[REQ, TCONF, SES, COOK]):
     def is_deep_link_launch(self) -> bool:
         """
         Returns whether or not the current launch is a deep linking launch.
-
-        :return: bool  Returns true if the current launch is a deep linking launch.
         """
         jwt_body = self._get_jwt_body()
         return DeepLinkMessageValidator().can_validate(jwt_body)
@@ -530,8 +542,6 @@ class MessageLaunch(t.Generic[REQ, TCONF, SES, COOK]):
     def is_resource_launch(self) -> bool:
         """
         Returns whether or not the current launch is a resource launch.
-
-        :return: bool  Returns true if the current launch is a resource launch.
         """
         jwt_body = self._get_jwt_body()
         return ResourceMessageValidator().can_validate(jwt_body)
@@ -539,8 +549,6 @@ class MessageLaunch(t.Generic[REQ, TCONF, SES, COOK]):
     def is_data_privacy_launch(self) -> bool:
         """
         Returns whether or not the current launch is a data privacy launch.
-
-        :return: bool  Returns true if the current launch is a data privacy launch.
         """
         jwt_body = self._get_jwt_body()
         return PrivacyLaunchValidator().can_validate(jwt_body)
@@ -548,8 +556,6 @@ class MessageLaunch(t.Generic[REQ, TCONF, SES, COOK]):
     def is_submission_review_launch(self) -> bool:
         """
         Returns whether or not the current launch is a submission review launch.
-
-        :return: bool  Returns true if the current launch is a submission review launch.
         """
         jwt_body = self._get_jwt_body()
         return SubmissionReviewLaunchValidator().can_validate(jwt_body)
@@ -557,24 +563,27 @@ class MessageLaunch(t.Generic[REQ, TCONF, SES, COOK]):
     def get_launch_data(self) -> TLaunchData:
         """
         Fetches the decoded body of the JWT used in the current launch.
-
-        :return: dict  Returns the decoded json body of the launch
         """
         return self._get_jwt_body()
 
     def get_launch_id(self) -> str:
         """
-        Get the unique launch id for the current launch.
-
-        :return: str  A unique identifier used to re-reference the current launch in subsequent requests.
+        Get the unique launch ID for the current launch, used to refer to the launch in subsequent requests.
         """
         return self._launch_id
 
     def get_tool_conf(self) -> TCONF:
+        """
+        Get the tool config object for this launch.
+        """
         return self._tool_config
 
     @staticmethod
     def urlsafe_b64decode(val: str) -> str:
+        """
+        Decode a URL-safe base 64 string.
+        """
+        # TODO - move this to the utils package? Is this already in the standard library?
         remainder = len(val) % 4
         if remainder > 0:
             padlen = 4 - remainder
@@ -585,10 +594,18 @@ class MessageLaunch(t.Generic[REQ, TCONF, SES, COOK]):
     def set_public_key_caching(
         self, data_storage: LaunchDataStorage[t.Any], cache_lifetime: int = 7200
     ):
+        """
+        Set the public key caching settings.
+
+        ``cache_lifetime`` is measured in seconds.
+        """
         self._public_key_cache_data_storage = data_storage
         self._public_key_cache_lifetime = cache_lifetime
 
     def fetch_public_key(self, key_set_url: str) -> TKeySet:
+        """
+        Fetch the public key from the given URL, using the cache if possible.
+        """
         cache_key = (
             "key-set-url-" + hashlib.md5(key_set_url.encode("utf-8")).hexdigest()
         )
@@ -619,6 +636,9 @@ class MessageLaunch(t.Generic[REQ, TCONF, SES, COOK]):
                 ) from e
 
     def get_public_key(self) -> t.Tuple[str, str]:
+        """
+        Get the platform's public key for this launch.
+        """
         assert self._registration is not None, "Registration not yet set"
         public_key_set = self._registration.get_key_set()
         key_set_url = self._registration.get_key_set_url()
@@ -660,7 +680,11 @@ class MessageLaunch(t.Generic[REQ, TCONF, SES, COOK]):
         raise LtiKeyException("Unable to find public key")
 
     def validate_state(self) -> "MessageLaunch":
-        # Check State for OIDC.
+        """
+        Validate the launch message's ``state`` parameter.
+
+        See https://www.rfc-editor.org/rfc/rfc6749#section-10.12
+        """
         state_from_request = self._get_request_param("state")
         if not state_from_request:
             raise LtiMessageValidationException("Missing state param")
@@ -677,6 +701,9 @@ class MessageLaunch(t.Generic[REQ, TCONF, SES, COOK]):
         return self
 
     def validate_jwt_format(self) -> "MessageLaunch":
+        """
+        Validate that the JWT included in the message launch is of the correct format.
+        """
         id_token = self._get_id_token()
         jwt_parts = id_token.split(".")
 
@@ -702,6 +729,11 @@ class MessageLaunch(t.Generic[REQ, TCONF, SES, COOK]):
         return self
 
     def validate_nonce(self) -> "MessageLaunch":
+        """
+        Validate the launch's ``nonce`` parameter, using the session service.
+
+        See https://openid.net/specs/openid-connect-core-1_0.html#IDToken.
+        """
         nonce = self._get_jwt_body().get("nonce")
         if not nonce:
             raise LtiMessageValidationException('The "nonce" field is empty.')
@@ -713,6 +745,9 @@ class MessageLaunch(t.Generic[REQ, TCONF, SES, COOK]):
         return self
 
     def validate_registration(self) -> "MessageLaunch":
+        """
+        Validate that the launch corresponds to a known platform registration.
+        """
         iss = self.get_iss()
         jwt_body = self._get_jwt_body()
         client_id = self.get_client_id()
@@ -749,6 +784,9 @@ class MessageLaunch(t.Generic[REQ, TCONF, SES, COOK]):
         return self
 
     def validate_jwt_signature(self) -> "MessageLaunch":
+        """
+        Validate thw signature of the JWT.
+        """
         id_token = self._get_id_token()
 
         # Fetch public key object
@@ -769,6 +807,9 @@ class MessageLaunch(t.Generic[REQ, TCONF, SES, COOK]):
         return self
 
     def validate_deployment(self) -> "MessageLaunch":
+        """
+        Check that the given ``deployment_id`` is valid, using the tool config.
+        """
         iss = self.get_iss()
         client_id = self.get_client_id()
         deployment_id = self._get_deployment_id()
@@ -789,6 +830,11 @@ class MessageLaunch(t.Generic[REQ, TCONF, SES, COOK]):
         return self
 
     def validate_message(self) -> "MessageLaunch":
+        """
+        Perform validation specific to the message type.
+
+        See :py:func:`pylti1p3.message_validators.get_validators`.
+        """
         jwt_body = self._get_jwt_body()
         message_type = jwt_body.get(
             "https://purl.imsglobal.org/spec/lti/claim/message_type", None
@@ -815,6 +861,11 @@ class MessageLaunch(t.Generic[REQ, TCONF, SES, COOK]):
     def set_launch_data_storage(
         self, data_storage: LaunchDataStorage[t.Any]
     ) -> "MessageLaunch":
+        """
+        Set the launch data storage handler for this launch.
+
+        If there is a session ID cookie, it's added to the ``LaunchDataStorage``.
+        """
         data_storage.set_request(self._request)
         session_cookie_name = data_storage.get_session_cookie_name()
         if session_cookie_name:
@@ -827,10 +878,16 @@ class MessageLaunch(t.Generic[REQ, TCONF, SES, COOK]):
         return self
 
     def set_launch_data_lifetime(self, time_sec: int) -> "MessageLaunch":
+        """
+        Change the expiration time of keys in the session service.
+        """
         self._session_service.set_launch_data_lifetime(time_sec)
         return self
 
     def save_launch_data(self) -> "MessageLaunch":
+        """
+        Save the launch data using the session service's cache. Called at the end of validation.
+        """
         state_from_request = self._get_request_param("state")
         id_token_hash = self._get_id_token_hash()
 
@@ -839,37 +896,65 @@ class MessageLaunch(t.Generic[REQ, TCONF, SES, COOK]):
         return self
 
     def get_params_from_login(self):
+        """
+        Get the OIDC login parameters from the session service.
+        """
         state = self._get_request_param("state")
         return self._session_service.get_state_params(state)
 
     def check_jwt_body_is_empty(self) -> bool:
+        """
+        Check that the JWT body is not empty.
+        """
+        # TODO - this doesn't seem to be used. Remove?
         jwt_body = self._get_jwt_body()
         return not jwt_body
 
     def check_staff_access(self) -> bool:
+        """
+        Does the user have a staff role?
+        """
         jwt_body = self._get_jwt_body()
         return StaffRole(jwt_body).check()
 
     def check_student_access(self) -> bool:
+        """
+        Does the user have a student role?
+        """
         jwt_body = self._get_jwt_body()
         return StudentRole(jwt_body).check()
 
     def check_teacher_access(self) -> bool:
+        """
+        Does the student have a teacher role?
+        """
         jwt_body = self._get_jwt_body()
         return TeacherRole(jwt_body).check()
 
     def check_teaching_assistant_access(self) -> bool:
+        """
+        Does the user have a teaching assistant role?
+        """
         jwt_body = self._get_jwt_body()
         return TeachingAssistantRole(jwt_body).check()
 
     def check_designer_access(self) -> bool:
+        """
+        Does the user have a designer role?
+        """
         jwt_body = self._get_jwt_body()
         return DesignerRole(jwt_body).check()
 
     def check_observer_access(self) -> bool:
+        """
+        Does the user have an observer role?
+        """
         jwt_body = self._get_jwt_body()
         return ObserverRole(jwt_body).check()
 
     def check_transient(self) -> bool:
+        """
+        Does the user have a transient role?
+        """
         jwt_body = self._get_jwt_body()
         return TransientRole(jwt_body).check()

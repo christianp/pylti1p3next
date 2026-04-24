@@ -3,6 +3,7 @@ import typing_extensions as te
 from .utils import add_param_to_url
 from .service_connector import ServiceConnector
 
+#: Settings for the names and roles provisioning service, from the launch message.
 TNamesAndRolesData = te.TypedDict(
     "TNamesAndRolesData",
     {
@@ -11,6 +12,7 @@ TNamesAndRolesData = te.TypedDict(
     total=False,
 )
 
+#: Data to do with a member of the course.
 TMember = te.TypedDict(
     "TMember",
     {
@@ -32,6 +34,13 @@ TMember = te.TypedDict(
 
 
 class NamesRolesProvisioningService:
+    """
+    Handles interaction with the Names and Roles Provisioning Service.
+
+    Don't create this directly; use :py:func:`pylti1p3.message_launch.MessageLaunch.get_nrps()` to create an instance from a launch message.
+
+    See the spec at https://www.imsglobal.org/spec/lti-nrps/v2p0.
+    """
     _service_connector: ServiceConnector
     _service_data: TNamesAndRolesData
 
@@ -42,6 +51,9 @@ class NamesRolesProvisioningService:
         self._service_data = service_data
 
     def get_nrps_data(self, members_url: t.Optional[str] = None):
+        """
+        Request a page of member data from the platform.
+        """
         if not members_url:
             members_url = self._service_data["context_memberships_url"]
 
@@ -58,10 +70,9 @@ class NamesRolesProvisioningService:
         self, members_url: t.Optional[str] = None
     ) -> t.Tuple[t.List[TMember], t.Optional[str]]:
         """
-        Get one page with the users.
+        Get one page of member data.
 
-        :param members_url: LTI platform's URL (optional)
-        :return: tuple in format: (list with users, next page url)
+        :return: tuple in format: (list with users, next page URL)
         """
         data = self.get_nrps_data(members_url=members_url)
         data_body = t.cast(t.Any, data.get("body", {}))
@@ -69,10 +80,10 @@ class NamesRolesProvisioningService:
 
     def get_members(self, resource_link_id: t.Optional[str] = None) -> t.List[TMember]:
         """
-        Get list with all users.
+        Get all members of the context from the platform, as a list.
 
-        :param resource_link_id: resource link id (optional)
-        :return: list
+        If the resource link ID is given, only members with access to that resource link are returned, if the platform supports it.
+        See https://www.imsglobal.org/spec/lti-nrps/v2p0#resource-link-membership-service.
         """
         members_res_lst: t.List[TMember] = []
         members_url: t.Optional[str] = self._service_data["context_memberships_url"]
@@ -88,7 +99,11 @@ class NamesRolesProvisioningService:
 
     def get_context(self):
         """
-        Get context data.
+        Get data about the context from the NRPS: at least its ID, and usually also a title and label.
+
+        You normally already have this information.
+
+        See https://www.imsglobal.org/spec/lti-nrps/v2p0#sharing-of-personal-data.
 
         :return: dict
         """

@@ -7,9 +7,9 @@ class CookiesAllowedCheckPage:
     """ Constructs a page which performs a check that the browser can save and use cookies. """
     _params: t.Mapping[str, str] = {}
     _protocol: str = "http"
-    _main_text: str = ""
-    _click_text: str = ""
-    _loading_text: str = ""
+    _main_text: str = "" #: Text saying that the browser can not save cookies.
+    _click_text: str = "" #: Text for the link to open in a new tab.
+    _loading_text: str = "" #: Text saying that the next page is loading.
 
     def __init__(
         self,
@@ -29,6 +29,9 @@ class CookiesAllowedCheckPage:
         self._loading_text = loading_text
 
     def get_css_block(self) -> str:
+        """
+            The CSS for the cookie check page.
+        """
         css_block = """\
         body {
         font-family: Geneva, Arial, Helvetica, sans-serif;
@@ -37,6 +40,9 @@ class CookiesAllowedCheckPage:
         return css_block
 
     def get_js_block(self) -> str:
+        """
+            The JavaScript code for the cookie check page.
+        """
         js_block = """\
         var siteProtocol = '%s';
         var urlParams = %s;
@@ -114,9 +120,15 @@ class CookiesAllowedCheckPage:
         return js_block
 
     def get_header_block(self) -> str:
+        """
+            A block of header text.
+        """
         return ""
 
     def get_html(self) -> str:
+        """ 
+            Returns HTML code for the cookie check page.
+        """
         html = """\
         <!DOCTYPE html>
         <html lang="en">

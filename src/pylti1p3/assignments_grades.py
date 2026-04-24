@@ -31,6 +31,8 @@ class AssignmentsGradesService:
     """ Handles interaction with the assignments and grades service. 
         
         Don't create this directly; use :py:func:`pylti1p3.message_launch.MessageLaunch.get_ags()` to create an instance from a launch message.
+
+        See the spec at https://www.imsglobal.org/spec/lti-ags/v2p0.
     """
     _service_connector: ServiceConnector
     _service_data: TAssignmentsGradersData

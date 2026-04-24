@@ -3,13 +3,19 @@ from .lineitem import LineItem
 
 
 class DeepLinkResource:
-    _type: str = "ltiResourceLink"
-    _title: t.Optional[str] = None
-    _url: t.Optional[str] = None
-    _lineitem: t.Optional[LineItem] = None
-    _custom_params: t.Mapping[str, str] = {}
-    _target: str = "iframe"
-    _icon_url: t.Optional[str] = None
+    """
+        A resource to return in the deep link flow.
+
+        See https://www.imsglobal.org/spec/lti-dl/v2p0/#lti-resource-link.
+    """
+
+    _type: str = "ltiResourceLink" #: The type of the resource. See `https://www.imsglobal.org/spec/lti-dl/v2p0/#content-item-types`__.
+    _title: t.Optional[str] = None #: The title of the resource.
+    _url: t.Optional[str] = None #: The URL of the resource.
+    _lineitem: t.Optional[LineItem] = None #: A lineItem object associated with this resource.
+    _custom_params: t.Mapping[str, str] = {} #: Any custom parameters to include in any launch for this resource.
+    _target: str = "iframe" #: not used???
+    _icon_url: t.Optional[str] = None #: The URL of an icon for this resource.
 
     def get_type(self):
         return self._type
@@ -61,6 +67,9 @@ class DeepLinkResource:
         return self
 
     def to_dict(self) -> t.Dict[str, object]:
+        """
+            Produce a dictionary representing this resource, to use in the deep link response.
+        """
         res: t.Dict[str, object] = {
             "type": self._type,
             "title": self._title,

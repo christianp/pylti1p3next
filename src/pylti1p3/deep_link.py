@@ -7,6 +7,7 @@ import typing_extensions as te
 from .deep_link_resource import DeepLinkResource
 from .registration import Registration
 
+#: Data describing deep-link settings, from the launch message.
 TDeepLinkData = te.TypedDict(
     "TDeepLinkData",
     {
@@ -28,6 +29,11 @@ TDeepLinkData = te.TypedDict(
 
 
 class DeepLink:
+    """
+        Manages the deep link flow. Using data from the launch message and a :py:class:`pylti1p3.deep_link_resource.DeepLinkResource`, creates HTML for the response form.
+
+        You should create one of these objects using :py:func:`pylti1p3.message_launch.MessageLaunch.get_deep_link`, and then get the response HTML using :py:func:`output_response_form` with one or more :py:class:`pylti1p3.deep_link_resource.DeepLinkResource` objects.
+    """
     _registration: Registration
     _deployment_id: str
     _deep_link_settings: TDeepLinkData
@@ -48,6 +54,9 @@ class DeepLink:
     def get_message_jwt(
         self, resources: t.Sequence[DeepLinkResource]
     ) -> t.Dict[str, object]:
+        """ 
+            Get the data for the response message, given a list of selected resources.
+        """
         message_jwt = {
             "iss": self._registration.get_client_id(),
             "aud": [self._registration.get_issuer()],
@@ -66,7 +75,10 @@ class DeepLink:
         }
         return message_jwt
 
-    def encode_jwt(self, message):
+    def encode_jwt(self, message: t.Dict[str, t.Any]) -> str:
+        """
+            Encode the response message as JWT.
+        """
         headers = None
         kid = self._registration.get_kid()
         if kid:
@@ -82,10 +94,16 @@ class DeepLink:
         return encoded_jwt
 
     def get_response_jwt(self, resources: t.Sequence[DeepLinkResource]) -> str:
+        """
+            Get the response data for the given selected resources, encoded as JWT.
+        """
         message_jwt = self.get_message_jwt(resources)
         return self.encode_jwt(message_jwt)
 
     def get_response_form_html(self, jwt_val: str) -> str:
+        """
+            Get the HTML for the deep link response form.
+        """
         deep_link_return_url = self._deep_link_settings["deep_link_return_url"]
         html = (
             f'<form id="lti13_deep_link_auto_submit" action="{deep_link_return_url}" method="POST">'
@@ -96,5 +114,8 @@ class DeepLink:
         return html
 
     def output_response_form(self, resources: t.List[DeepLinkResource]) -> str:
+        """
+            Get the HTML for the deep link response form, using the given resources.
+        """
         jwt_val = self.get_response_jwt(resources)
         return self.get_response_form_html(jwt_val)
