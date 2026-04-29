@@ -23,6 +23,12 @@ COOK = t.TypeVar("COOK", bound=CookieService)
 
 
 class OIDCLogin(t.Generic[REQ, TCONF, SES, COOK, RED]):
+    """
+    Manages the OIDC login step of the LTI launch process.
+
+    Use the subclasses corresponding to your framework in the ``contrib`` package.
+
+    """
     __metaclass__ = ABCMeta
     _request: REQ
     _tool_config: TCONF
@@ -64,11 +70,17 @@ class OIDCLogin(t.Generic[REQ, TCONF, SES, COOK, RED]):
         return ""  # type: ignore
 
     def get_iss(self) -> t.Optional[str]:
+        """
+        Get the issuer from the registration data.
+        """
         if self._registration:
             return self._registration.get_issuer()
         return None
 
     def get_client_id(self) -> t.Optional[str]:
+        """
+        Get the client ID from the registration data.
+        """
         if self._registration:
             return self._registration.get_client_id()
         return None
@@ -158,16 +170,21 @@ class OIDCLogin(t.Generic[REQ, TCONF, SES, COOK, RED]):
             if not self._is_new_window_request():
                 return self.get_cookies_allowed_js_check()
 
-        redirect_obj = self._prepare_redirect(launch_url)
+        redirect_obj = self.get_redirect_object(launch_url)
         if js_redirect:
             return redirect_obj.do_js_redirect()
         return redirect_obj.do_redirect()
 
     def get_redirect_object(self, launch_url: str) -> Redirect[RED]:
+        """
+        Get the redirect information as an object.
+        """
         return self._prepare_redirect(launch_url)
 
     def validate_oidc_login(self) -> Registration:
-        # validate Issuer
+        """
+        Validate the issuer details given in the request, and return the corresponding registration object, or raise an ``OIDCException`` if no such registration exists.
+        """
         iss = self._get_request_param("iss")
         if not iss:
             raise OIDCException("Could not find issuer")
@@ -197,7 +214,7 @@ class OIDCLogin(t.Generic[REQ, TCONF, SES, COOK, RED]):
 
     def pass_params_to_launch(self, params: t.Dict[str, object]) -> "OIDCLogin":
         """
-        Ability to pass custom params from oidc login to launch.
+        Give a dictionary of custom parameters to include in the launch - these are saved in the session and available for subsequent requests.
         """
         self._state_params = params
         return self
@@ -210,6 +227,8 @@ class OIDCLogin(t.Generic[REQ, TCONF, SES, COOK, RED]):
         **kwargs,
     ) -> "OIDCLogin":
         # pylint: disable=unused-argument
+        """ Enable the cookie check: the first request will return a page which checks cookies can be set, and then redirects to continue the login.
+        """
         self._cookies_check = True
         if main_msg:
             self._cookies_unavailable_msg_main_text = main_msg
@@ -220,17 +239,23 @@ class OIDCLogin(t.Generic[REQ, TCONF, SES, COOK, RED]):
         return self
 
     def disable_check_cookies(self) -> "OIDCLogin":
+        #: Disable the cookie check.
         self._cookies_check = False
         return self
 
     def get_additional_login_params(self) -> t.List[str]:
         """
+        Get the list of additional login parameters.
+
         You may add additional custom params in your own OIDCLogin class
         :return: list
         """
         return []
 
     def get_cookies_allowed_js_check_params(self) -> tuple[str, Mapping[str, str]]:
+        """
+        Get the protocol and parameters used for the cookies allowed check page.
+        """
         protocol = "https" if self._request.is_secure() else "http"
         params_lst = [
             "iss",
@@ -257,6 +282,9 @@ class OIDCLogin(t.Generic[REQ, TCONF, SES, COOK, RED]):
     def set_launch_data_storage(
         self, data_storage: LaunchDataStorage[t.Any]
     ) -> "OIDCLogin":
+        """
+        Save the launch data in the given launch data storage object.
+        """
         data_storage.set_request(self._request)
         session_cookie_name = data_storage.get_session_cookie_name()
         if session_cookie_name:
@@ -269,5 +297,8 @@ class OIDCLogin(t.Generic[REQ, TCONF, SES, COOK, RED]):
         return self
 
     def set_launch_data_lifetime(self, time_sec: int) -> "OIDCLogin":
+        """
+        Set the lifetime of the launch data to the given amount of seconds. After that has elapsed, the launch data will be considered invalid.
+        """
         self._session_service.set_launch_data_lifetime(time_sec)
         return self

@@ -29,6 +29,10 @@ REQUESTS_USER_AGENT = "PyLTI1p3-client"
 
 
 class ServiceConnector:
+    """
+    The service connector handles communications between the LTI tool and services on the LTI platform.
+    """
+
     _registration: Registration
 
     def __init__(
@@ -60,6 +64,11 @@ class ServiceConnector:
         raise NotImplementedError
 
     def get_access_token(self, scopes: t.Sequence[str]) -> str:
+        """
+        Get an access token from the platform, with the given scopes.
+
+        Some platforms rate-limit token requests, so tokens are cached in memory to avoid repeatedly asking for a token with the same scopes.
+        """
         # Don't fetch the same key more than once
         scopes = sorted(scopes)
 
@@ -124,6 +133,9 @@ class ServiceConnector:
         private_key: str,
         headers: t.Dict[str, str],
     ) -> str:
+        """
+        Encode a message as a JWT.
+        """
         jwt_val = jwt.encode(message, private_key, algorithm="RS256", headers=headers)
         if isinstance(jwt_val, bytes):
             return jwt_val.decode("utf-8")
@@ -140,6 +152,11 @@ class ServiceConnector:
         accept: str = "application/json",
         case_insensitive_headers: bool = False,
     ) -> TServiceConnectorResponse:
+        """
+        Make a request to the service. An access token for the requested scopes is fetched automatically.
+
+        If ``is_post`` is false, a ``GET`` request is made.
+        """
         access_token = self.get_access_token(scopes)
         headers = {"Authorization": "Bearer " + access_token, "Accept": accept}
 

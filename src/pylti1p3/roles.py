@@ -2,8 +2,19 @@ from abc import ABCMeta
 import typing as t
 import typing_extensions as te
 
+"""
+Classes to check user roles from the LTI role vocabularies, to determine access rights.
+
+See `section A.2 of the spec <https://www.imsglobal.org/spec/lti/v1p3/#role-vocabularies>`__ for a list of all roles.
+
+Role classes have a static list of roles from the vocabulary. If the user has any of those roles, then they are considered to have the level of access represented by the object.
+"""
+
 
 class RoleType:
+    """
+    Enum for types of roles. These describe the scope of the role.
+    """
     SYSTEM: te.Final = "system"
     INSTITUTION: te.Final = "institution"
     CONTEXT: te.Final = "membership"
@@ -72,7 +83,13 @@ class AbstractRole:
             )
         )
 
-    def parse_role_str(self, role_str: str):
+    def parse_role_str(self, role_str: str) -> t.Tuple[str, t.Optional[str]]:
+        """
+        Parse a role name, as received from the LTI platform.
+        A role name is a URL, with an optional hash suffix specifying the type.
+
+        Returns the role without the type suffix, and the type, or ``None`` if the type is not specified.
+        """
         if role_str.startswith(self._base_prefix):
             role = role_str[len(self._base_prefix) :]
             role_parts = role.split("/")

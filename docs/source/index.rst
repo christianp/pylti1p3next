@@ -6,3 +6,5 @@ pylti1p3next documentation
    :caption: Contents:
 
    pylti1p3
+   extensions
+   contrib
